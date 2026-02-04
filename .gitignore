@@ -1,0 +1,12 @@
+*/*/build/*
+*/html/*
+*/*/html/*
+*/*/.DS_Store
+*/.DS_Store
+Make.default
+apps/Make.rules
+apps/apps.cfg
+*.o
+*._c
+inc/*
+scripts/*
