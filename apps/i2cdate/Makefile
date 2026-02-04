@@ -1,15 +1,15 @@
 # Sources and objects
 C_SOURCES = \
-	  digio.c i2cdrivr.c i2cintfc.c i2cintmastr.c
+	  ds3231_date.c
 
-APPNAME = pcx8584_demo
+SOURCES = \
+	  i2c.s 
+	  
+APPNAME = i2cdate
 
 # DO NOT EDIT THIS
 include ../Make.rules# Sources and objects
 
-clean_:clean
+all_: all
 
-all_:all 
-
-
-
+clean_: clean
