@@ -44,3 +44,20 @@ To help understanding the data flow in the driver I added a Doxygen to the proje
 
 Unfortunately the P8584 driver IC is not rated for cpu bus speeds above 1Mhz, there is a way to extend the access time using the cpu RDY line and when I have some suitable logic ICs to implement this I'll give it a try. In the meantime I have to swap the 4MHz clock for a 1Mhz clock.
 
+## 4MHz operation with PLD RDY extender
+
+I now have a PLD programmed to extend the bs cycle by pulling the ready line low for four clock cyclles allowing the PCF8584 to work on a 4MHz 6502
+
+A benefit of this is that the system now works at the full I2C bus speed available on this chip - 90kHz
+
+![Read with RDY](./images/i2c-read.png)
+![Write with RDY](./images/i2c-write.png)
+
+The PLD code was mainly written by the Google AI robot, some minot edits were made afterwards. I need to investigate some minor problems but the code given here is working as expected.
+
+[16v8 PLD Code](./documents/NAME.PLD) 
+A detail showing the PLD gray code counter outputs
+[16v8 PLD detail](./images/i2c-rdy-sm.png)
+
+A screenshot from the logic analyser showing the extended bus cycles when the I2C chip is selected
+![Bus activity](./images/cpu-bus-activity.png)

@@ -1,0 +1,75 @@
+/*****************************************************************************/
+/*                                                                           */
+/*  Name:     WAITGEN3.PLD                                                   */
+/*  PartNo:   ATF16V8B / ATF16V8C                                            */
+/*  Date:     2024/05/22                                                     */
+/*  Revision: 02                                                             */
+/*  Designer: Assistant                                                      */
+/*  Company:  Homebrew Computing                                             */
+/*  Assembly: 6502 RDY Generation                                            */
+/*  Location: U1                                                             */
+/*                                                                           */
+/*****************************************************************************/
+/*  Target Device: G16V8 (ATF16V8 in Registered Mode)                        */
+/*****************************************************************************/
+/*  Description:                                                             */
+/*    Implements a 3-wait-state generator for the 65C02 CPU using a 3-bit    */
+/*    Gray code counter to avoid glitches. Provides an open-collector        */
+/*    RDY signal and a delayed Chip Enable (nCE) for slow peripherals.       */
+/*****************************************************************************/
+
+Name     WaitGen3;
+PartNo   05;
+Date     2024/05/22;
+Revision 02;
+Designer Assistant;
+Company  Homebrew;
+Assembly 6502 RDY;
+Location U1;
+Device   g16v8;
+
+/* *************** INPUT PINS ******************** */
+PIN 1  = PHI2;     /* System Clock (Must be Pin 1 for Reg Mode) */
+PIN 2  = nSLOW;    /* Active Low: From address decoder          */
+PIN 3 =  nSLOWPHI;
+PIN 11 = !OE;      /* Reg Output Enable (Connect to GND)        */
+
+/* *************** OUTPUT PINS ******************* */
+PIN 19 = nRDY;     /* RDY to CPU (Bi-directional/Open-Collector)*/
+PIN 18 = G0;       /* Gray Code Bit 0                           */
+PIN 17 = G1;       /* Gray Code Bit 1                           */
+PIN 16 = G2;       /* Gray Code Bit 2                           */
+PIN 15 = nCE;      /* Delayed Chip Enable to slow device        */
+PIN 14 = nCEPHI;
+
+/* *************** STATE DEFINITIONS ************** */
+/* Gray sequence: 000 -> 001 -> 011 -> 010 -> 110   */
+
+/* *************** LOGIC EQUATIONS *************** */
+
+/* 1. Gray Code State Transitions (Next State) */
+G0.D = (!G2 & !G1 & !G0 & !nSLOW) /* Transition S0 -> S1     */
+     # (!G2 & !G1 & G0);          /* Transition S1 -> S2 bit */
+
+G1.D = (!G2 & !G1 & G0)           /* Transition S1 -> S2     */
+     # (!G2 & G1);                /* Hold G1 thru S2 and S3  */
+
+G2.D = (!G2 & G1 & !G0)           /* Transition S3 -> S4     */
+     # (G2 & G1 & !G0 & !nSLOW);  /* Hold S4 until nSLOW released */
+
+/* 2. RDY Logic: Drives LOW during S1, S2, and S3 */
+!nRDY = (!G2 & !G1 & G0)   /* S1: 001 */
+     # (!G2 & G1 & G0)    /* S2: 011 */
+     # (!G2 & G1 & !G0);   /* S3: 010 */
+
+/* Mimic Open-Collector: Only drive pin when nRDY logic is Low */
+//nRDY.OE = !nRDY; // djr output never changes
+
+/* 3. Delayed Chip Enable: */
+/* Enable device after first clock edge, keep active while nSLOW is low */
+!nCE = !nSLOW & (G0 # G1 # G2);
+!nCEPHI = !nSLOWPHI & (G0 # G1 # G2);
+
+/*****************************************************************************/
+/* End of Source                                                             */
+/*****************************************************************************/
